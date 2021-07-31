@@ -3,12 +3,26 @@ version: "3"
 services:
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.7
+    hostname: zookeeper
     ports:
-      - "2181:2181"
+      - "3181:2181"
     volumes:
       - "zookeeper_data:/bitnami"
+      - "./keys/truststore/kafka.truststore.jks:/opt/bitnami/zookeeper/config/certs/zookeeper.truststore.jks:ro"
+      - "./keys/keystore/zookeeper.keystore.jks:/opt/bitnami/zookeeper/config/certs/zookeeper.keystore.jks:ro"
     environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_ENABLE_AUTH=yes
+      - ZOO_SERVER_USERS=kafka
+      - ZOO_SERVER_PASSWORDS=kafka_password
+      - ZOO_CLIENT_USER=kafka
+      - ZOO_CLIENT_PASSWORD=kafka_password
+      
+      - ZOO_TLS_CLIENT_ENABLE=true
+      - ZOO_TLS_CLIENT_KEYSTORE_PASSWORD=test1234
+      - ZOO_TLS_CLIENT_KEYSTORE_FILE=/opt/bitnami/zookeeper/config/certs/zookeeper.truststore.jks
+      - ZOO_TLS_CLIENT_TRUSTSTORE_PASSWORD=test1234
+      - ZOO_TLS_CLIENT_TRUSTSTORE_FILE=/opt/bitnami/zookeeper/config/certs/zookeeper.keystore.jks
+      
   kafka-0:
     image: docker.io/bitnami/kafka:2
     hostname: kafka-0
@@ -17,10 +31,18 @@ services:
     volumes:
       - "./keys/truststore/kafka.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro"
       - "./keys/keystore/kafka-0.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro"
+      - "./keys/truststore/kafka.truststore.jks:/opt/bitnami/kafka/config/certs/zookeeper.truststore.jks:ro"
+      - "./keys/keystore/zookeeper.keystore.jks:/opt/bitnami/kafka/config/certs/zookeeper.keystore.jks:ro"
       - "kafka_0_data:/bitnami/kafka"
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_ZOOKEEPER_PROTOCOL=SASL
+      - KAFKA_ZOOKEEPER_TLS_KEYSTORE_PASSWORD=test1234
+      - KAFKA_ZOOKEEPER_TLS_TRUSTSTORE_PASSWORD=test1234
+      - KAFKA_ZOOKEEPER_USER=kafka
+      - KAFKA_ZOOKEEPER_PASSWORD=kafka_password
+      - KAFKA_ZOOKEEPER_TLS_VERIFY_HOSTNAME=false
+      
       
       - KAFKA_CFG_BROKER_ID=0
       

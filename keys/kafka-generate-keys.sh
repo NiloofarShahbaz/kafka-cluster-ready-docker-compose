@@ -24,10 +24,6 @@ function file_exists_and_exit() {
   exit 1
 }
 
-if [ -e "$KEYSTORE_WORKING_DIRECTORY" ]; then
-  file_exists_and_exit $KEYSTORE_WORKING_DIRECTORY
-fi
-
 if [ -e "$CA_CERT_FILE" ]; then
   file_exists_and_exit $CA_CERT_FILE
 fi
@@ -128,7 +124,9 @@ echo "Continuing with:"
 echo " - trust store file:        $trust_store_file"
 echo " - trust store private key: $trust_store_private_key_file"
 
-mkdir $KEYSTORE_WORKING_DIRECTORY
+if ! [ -e "$KEYSTORE_WORKING_DIRECTORY" ]; then
+  mkdir $KEYSTORE_WORKING_DIRECTORY
+fi
 
 echo
 echo "Now, a keystore will be generated. Each broker and logical client needs its own"
