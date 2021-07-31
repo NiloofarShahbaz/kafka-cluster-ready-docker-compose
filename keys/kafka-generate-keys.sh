@@ -150,6 +150,7 @@ keytool -noprompt -genkey \
 	-keyalg RSA \
 	-storepass $PASSWORD \
 	-keypass $PASSWORD \
+	-storetype pkcs12 \
 	-dname "CN=$hostname,OU=$OU,O=$O,L=$L,C=$C" \
 	-ext "SAN=dns:$hostname"
 
@@ -186,10 +187,11 @@ distinguished_name = req_distinguished_name
 req_extensions = req_ext
 
 [req_distinguished_name]
-countryName = IR
-localityName = Tehran
-organizationName = Sensifai
-commonName = kafka-ca
+countryName = $C
+localityName = $L
+organizationName = $O
+organizationUnitName= $OU
+commonName = $hostname
 
 [req_ext]
 subjectAltName = @alt_names
