@@ -5,7 +5,7 @@ services:
     image: docker.io/bitnami/zookeeper:3.7
     hostname: zookeeper
     ports:
-      - "3181:2181"
+      - "3181:3181"
     volumes:
       - "zookeeper_data:/bitnami"
       - "./keys/truststore/kafka.truststore.jks:/opt/bitnami/zookeeper/config/certs/zookeeper.truststore.jks:ro"
@@ -17,11 +17,11 @@ services:
       - ZOO_CLIENT_USER=kafka
       - ZOO_CLIENT_PASSWORD=kafka_password
       
-      - ZOO_TLS_CLIENT_ENABLE=true
+      - ZOO_TLS_CLIENT_ENABLE=yes
       - ZOO_TLS_CLIENT_KEYSTORE_PASSWORD=test1234
-      - ZOO_TLS_CLIENT_KEYSTORE_FILE=/opt/bitnami/zookeeper/config/certs/zookeeper.truststore.jks
+      - ZOO_TLS_CLIENT_KEYSTORE_FILE=/opt/bitnami/zookeeper/config/certs/zookeeper.keystore.jks
       - ZOO_TLS_CLIENT_TRUSTSTORE_PASSWORD=test1234
-      - ZOO_TLS_CLIENT_TRUSTSTORE_FILE=/opt/bitnami/zookeeper/config/certs/zookeeper.keystore.jks
+      - ZOO_TLS_CLIENT_TRUSTSTORE_FILE=/opt/bitnami/zookeeper/config/certs/zookeeper.truststore.jks
       
   kafka-0:
     image: docker.io/bitnami/kafka:2
@@ -34,32 +34,29 @@ services:
       - "./keys/truststore/kafka.truststore.jks:/opt/bitnami/kafka/config/certs/zookeeper.truststore.jks:ro"
       - "./keys/keystore/zookeeper.keystore.jks:/opt/bitnami/kafka/config/certs/zookeeper.keystore.jks:ro"
       - "kafka_0_data:/bitnami/kafka"
+      - "./keys/client.properties:/properties/client.properties"
     environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_ZOOKEEPER_PROTOCOL=SASL
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:3181
+      - KAFKA_ZOOKEEPER_PROTOCOL=SASL_SSL
       - KAFKA_ZOOKEEPER_TLS_KEYSTORE_PASSWORD=test1234
       - KAFKA_ZOOKEEPER_TLS_TRUSTSTORE_PASSWORD=test1234
       - KAFKA_ZOOKEEPER_USER=kafka
       - KAFKA_ZOOKEEPER_PASSWORD=kafka_password
-      - KAFKA_ZOOKEEPER_TLS_VERIFY_HOSTNAME=false
-      
       
       - KAFKA_CFG_BROKER_ID=0
+      - KAFKA_CFG_SASL_ENABLED_MECHANISMS=PLAIN
+      - ALLOW_PLAINTEXT_LISTENER=yes
       
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:SSL,CLIENT:SASL_SSL
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:SSL,CLIENT:SSL
       - KAFKA_CFG_LISTENERS=INTERNAL://:9093,CLIENT://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9093,CLIENT://localhost:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-0:9093,CLIENT://kafka-0:9092
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
       
       - KAFKA_CERTIFICATE_PASSWORD=test1234
-#      - KAFKA_CLIENT_USER=user
-#      - KAFKA_CLIENT_PASSWORD=password
+      - KAFKA_CLIENT_USER=kafkauser
+      - KAFKA_CLIENT_PASSWORD=kafkapassword
     depends_on:
       - zookeeper
-      
-  kafka_internal_client:
-    image: docker.io/bitnami/kafka:2
-    command: sleep infinity
 
 volumes:
   zookeeper_data:
