@@ -150,7 +150,7 @@ keytool -noprompt -genkey \
 	-keypass $PASSWORD \
 	-storetype pkcs12 \
 	-dname "CN=$hostname,OU=$OU,O=$O,L=$L,C=$C" \
-	-ext "SAN=dns:$hostname"
+	-ext "SAN=DNS:$hostname,DNS:localhost"
 
 echo
 echo "'$KEYSTORE_WORKING_DIRECTORY/$KEYSTORE_FILENAME' now contains a key pair and a"
@@ -165,7 +165,7 @@ keytool -noprompt -alias localhost\
 	-certreq -file $KEYSTORE_SIGN_REQUEST \
 	-keypass $PASSWORD \
 	-storepass $PASSWORD \
-	-ext "SAN=dns:$hostname"
+	-ext "SAN=DNS:$hostname,DNS:localhost"
 
 echo
 echo "Now the trust store's private key (CA) will sign the keystore's certificate."
@@ -177,7 +177,6 @@ openssl x509 -req \
 	-out $KEYSTORE_SIGNED_CERT \
 	-days $VALIDITY_IN_DAYS \
 	-CAcreateserial \
-	-passin pass:$PASSWORD \
 	-passin pass:$PASSWORD \
 	-extfile <(cat <<EOF
 [req]
@@ -196,6 +195,7 @@ subjectAltName = @alt_names
 
 [alt_names]
 DNS.1 = $hostname
+DNS.2 = localhost
 EOF
 )
 # creates $KEYSTORE_SIGN_REQUEST_SRL which is never used or needed.
@@ -218,7 +218,7 @@ keytool -alias localhost \
 	-file $KEYSTORE_SIGNED_CERT \
 	-keypass $PASSWORD \
 	-storepass $PASSWORD \
-	-ext "SAN=dns:$hostname"
+	-ext "SAN=DNS:$hostname,DNS:localhost"
 
 echo
 echo "All done!"
