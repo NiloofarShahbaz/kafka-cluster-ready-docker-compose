@@ -13,15 +13,15 @@ services:
       - "./keys/keystore/zookeeper.keystore.jks:/opt/bitnami/zookeeper/config/certs/zookeeper.keystore.jks:ro"
     environment:
       - ZOO_ENABLE_AUTH=yes
-      - ZOO_SERVER_USERS=kafka
-      - ZOO_SERVER_PASSWORDS=kafka_password
-      - ZOO_CLIENT_USER=kafka
-      - ZOO_CLIENT_PASSWORD=kafka_password
+      - ZOO_SERVER_USERS=${KAFKA_DOCKER_ZOO_USER}
+      - ZOO_SERVER_PASSWORDS=${KAFKA_DOCKER_ZOO_PASSWORD}
+      - ZOO_CLIENT_USER=${KAFKA_DOCKER_ZOO_USER}
+      - ZOO_CLIENT_PASSWORD=${KAFKA_DOCKER_ZOO_PASSWORD}
       
       - ZOO_TLS_CLIENT_ENABLE=yes
-      - ZOO_TLS_CLIENT_KEYSTORE_PASSWORD=test1234
+      - ZOO_TLS_CLIENT_KEYSTORE_PASSWORD=${KAFKA_DOCKER_CERTIFICATE_PASSWORD}
       - ZOO_TLS_CLIENT_KEYSTORE_FILE=/opt/bitnami/zookeeper/config/certs/zookeeper.keystore.jks
-      - ZOO_TLS_CLIENT_TRUSTSTORE_PASSWORD=test1234
+      - ZOO_TLS_CLIENT_TRUSTSTORE_PASSWORD=${KAFKA_DOCKER_CERTIFICATE_PASSWORD}
       - ZOO_TLS_CLIENT_TRUSTSTORE_FILE=/opt/bitnami/zookeeper/config/certs/zookeeper.truststore.jks
       
   kafka-0:
@@ -40,10 +40,10 @@ services:
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:3181
       - KAFKA_ZOOKEEPER_PROTOCOL=SASL_SSL
-      - KAFKA_ZOOKEEPER_TLS_KEYSTORE_PASSWORD=test1234
-      - KAFKA_ZOOKEEPER_TLS_TRUSTSTORE_PASSWORD=test1234
-      - KAFKA_ZOOKEEPER_USER=kafka
-      - KAFKA_ZOOKEEPER_PASSWORD=kafka_password
+      - KAFKA_ZOOKEEPER_TLS_KEYSTORE_PASSWORD=${KAFKA_DOCKER_CERTIFICATE_PASSWORD}
+      - KAFKA_ZOOKEEPER_TLS_TRUSTSTORE_PASSWORD=${KAFKA_DOCKER_CERTIFICATE_PASSWORD}
+      - KAFKA_ZOOKEEPER_USER=${KAFKA_DOCKER_ZOO_USER}
+      - KAFKA_ZOOKEEPER_PASSWORD=${KAFKA_DOCKER_ZOO_PASSWORD}
       
       - KAFKA_CFG_BROKER_ID=0
       - KAFKA_CFG_SASL_ENABLED_MECHANISMS=PLAIN
@@ -54,9 +54,9 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-0:9093,CLIENT://localhost:9092
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
       
-      - KAFKA_CERTIFICATE_PASSWORD=test1234
-      - KAFKA_CLIENT_USERS=kafkauser
-      - KAFKA_CLIENT_PASSWORDS=kafkapassword
+      - KAFKA_CERTIFICATE_PASSWORD=${KAFKA_DOCKER_CERTIFICATE_PASSWORD}
+      - KAFKA_CLIENT_USERS=${KAFKA_DOCKER_SASL_USER}
+      - KAFKA_CLIENT_PASSWORDS=${KAFKA_DOCKER_SASL_PASSWORD}
     depends_on:
       - zookeeper
 
@@ -78,11 +78,11 @@ services:
                 bootstrap.servers: "kafka-0:9093"
                 security.protocol: SSL
                 ssl.truststore.location: /certs/akhq.truststore.jks
-                ssl.truststore.password: test1234
+                ssl.truststore.password: ${KAFKA_DOCKER_CERTIFICATE_PASSWORD}
                 ssl.keystore.type: PKCS12
                 ssl.keystore.location: /certs/akhq.keystore.jks
-                ssl.keystore.password: test1234
-                ssl.key.password: test1234
+                ssl.keystore.password: ${KAFKA_DOCKER_CERTIFICATE_PASSWORD}
+                ssl.key.password: ${KAFKA_DOCKER_CERTIFICATE_PASSWORD}
           security:
             default-group: no-roles
             basic-auth:
