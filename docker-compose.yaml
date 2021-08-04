@@ -3,6 +3,7 @@ version: "3"
 services:
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.7
+    restart: always
     hostname: zookeeper
     ports:
       - "3181:3181"
@@ -25,6 +26,7 @@ services:
       
   kafka-0:
     image: docker.io/bitnami/kafka:2
+    restart: always
     hostname: kafka-0
     ports:
       - "9092:9092"
@@ -47,16 +49,51 @@ services:
       - KAFKA_CFG_SASL_ENABLED_MECHANISMS=PLAIN
       - ALLOW_PLAINTEXT_LISTENER=yes
       
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:SSL,CLIENT:SSL
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:SSL,CLIENT:SASL_SSL
       - KAFKA_CFG_LISTENERS=INTERNAL://:9093,CLIENT://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-0:9093,CLIENT://kafka-0:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka-0:9093,CLIENT://localhost:9092
       - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
       
       - KAFKA_CERTIFICATE_PASSWORD=test1234
-      - KAFKA_CLIENT_USER=kafkauser
-      - KAFKA_CLIENT_PASSWORD=kafkapassword
+      - KAFKA_CLIENT_USERS=kafkauser
+      - KAFKA_CLIENT_PASSWORDS=kafkapassword
     depends_on:
       - zookeeper
+
+  akhq:
+    image: tchiotludo/akhq
+    restart: always
+    hostname: akhq
+    ports:
+      - 8080:8080
+    volumes:
+      - "./keys/truststore/kafka.truststore.jks:/certs/akhq.truststore.jks:ro"
+      - "./keys/keystore/akhq.keystore.jks:/certs/akhq.keystore.jks:ro"
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            kafka:
+              properties:
+                bootstrap.servers: "kafka-0:9093"
+                security.protocol: SSL
+                ssl.truststore.location: /certs/akhq.truststore.jks
+                ssl.truststore.password: test1234
+                ssl.keystore.type: PKCS12
+                ssl.keystore.location: /certs/akhq.keystore.jks
+                ssl.keystore.password: test1234
+                ssl.key.password: test1234
+          security:
+            default-group: no-roles
+            basic-auth:
+              - username: admin
+                password: 03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4
+                groups:
+                  - admin
+        micronaut:
+          security:
+            enabled: true
+
 
 volumes:
   zookeeper_data:
